@@ -1,0 +1,10 @@
+server:
+  port: 9001
+
+spring:
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:9101/TIMESLOT_SERVICE_DB
+    username: postgres
+    password: Welcome
+    driverClassName: org.postgresql.Driver

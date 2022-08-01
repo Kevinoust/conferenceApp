@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  timeslot-service:
+    build:
+      context: ./
+      dockerfile: ./docker/api/Dockerfile
+    container_name: 'timeslot-service'
+    image: timeslot-service:latest
+    ports:
+      - 9001:9001
+    environment:
+      - DATA_SOURCE_URL=jdbc:postgresql://timeslot-service-db:5432/TIMESLOT_SERVICE_DB
+      - DATA_SOURCE_USERNAME=postgres
+      - DATA_SOURCE_PASSWORD=Welcome
+    depends_on:
+      timeslot-service-db:
+        condition: service_started
+    networks:
+      - internal_network
+
+  timeslot-service-db:
+    build:
+      context: ./
+      dockerfile: ./docker/db/Dockerfile
+    container_name: 'timeslot-service-db'
+    image: timeslot-service-db:latest
+    ports:
+      - 9101:5432
+    volumes:
+      - ./.data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=TIMESLOT_SERVICE_DB
+      - POSTGRES_PASSWORD=Welcome
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    driver: bridge
