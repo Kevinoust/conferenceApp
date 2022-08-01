@@ -1,0 +1,10 @@
+server:
+  port: 9002
+
+spring:
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:9102/TAG_SERVICE_DB
+    username: postgres
+    password: Welcome
+    driverClassName: org.postgresql.Driver
