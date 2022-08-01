@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  tag-service:
+    build:
+      context: ./
+      dockerfile: ./docker/api/Dockerfile
+    container_name: 'tag-service'
+    image: tag-service:latest
+    ports:
+      - 9002:9002
+    environment:
+      - DATA_SOURCE_URL=jdbc:postgresql://tag-service-db:5432/TAG_SERVICE_DB
+      - DATA_SOURCE_USERNAME=postgres
+      - DATA_SOURCE_PASSWORD=Welcome
+    depends_on:
+      tag-service-db:
+        condition: service_started
+    networks:
+      - internal_network
+
+  tag-service-db:
+    build:
+      context: ./
+      dockerfile: ./docker/db/Dockerfile
+    container_name: 'tag-service-db'
+    image: tag-service-db:latest
+    ports:
+      - 9102:5432
+    volumes:
+      - ./.data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=TAG_SERVICE_DB
+      - POSTGRES_PASSWORD=Welcome
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    driver: bridge
