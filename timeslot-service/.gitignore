@@ -58,3 +58,8 @@ hs_err_pid*
 
 # db data
 .data
+
+# maven
+.mvn
+mvnw
+mvnw.cmd
