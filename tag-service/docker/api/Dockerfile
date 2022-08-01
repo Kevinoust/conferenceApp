@@ -11,6 +11,5 @@ RUN mvn clean package
 FROM openjdk:11
 MAINTAINER kevino
 COPY --from=build /Documents/myApp/tagService/target/*.jar ./tagService.jar
-EXPOSE 9001
 RUN sh -c 'touch tagService.jar'
 ENTRYPOINT ["java", "-jar", "tagService.jar"]
