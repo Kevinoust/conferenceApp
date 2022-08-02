@@ -21,4 +21,6 @@ public class SessionSumDTO {
 
     @NotNull(message = "sessionLength is mandatory!") @Positive(message = "sessionLength should be greater than 0!")
     private Integer sessionLength;
+
+
 }
