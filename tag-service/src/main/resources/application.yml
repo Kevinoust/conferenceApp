@@ -2,9 +2,20 @@ server:
   port: 9002
 
 spring:
+  application:
+    name: TAG-SERVICE
   datasource:
     platform: postgres
     url: jdbc:postgresql://localhost:9102/TAG_SERVICE_DB
     username: postgres
     password: Welcome
     driverClassName: org.postgresql.Driver
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost

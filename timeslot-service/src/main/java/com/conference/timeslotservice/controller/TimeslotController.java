@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/timeslot")
+@RequestMapping("/timeslots")
 @Slf4j
 public class TimeslotController {
     @Autowired
