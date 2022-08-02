@@ -1,0 +1,12 @@
+server:
+  port: 9004
+
+spring:
+  jpa:
+    show-sql: true
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:9104/SESSION_SERVICE_DB
+    username: postgres
+    password: Welcome
+    driverClassName: org.postgresql.Driver
