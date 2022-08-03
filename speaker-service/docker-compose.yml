@@ -8,11 +8,11 @@ services:
     container_name: 'speaker-service'
     image: speaker-service:latest
     ports:
-      - 9003:8080
+      - 9003:9003
     environment:
-      - DATA_SOURCE_URL=jdbc:postgresql://speaker-service-db:5432/SPEAKER_SERVICE_DB
-      - DATA_SOURCE_USERNAME=postgres
-      - DATA_SOURCE_PASSWORD=Welcome
+      - spring.datasource.url=jdbc:postgresql://speaker-service-db:5432/SPEAKER_SERVICE_DB
+      - spring.datasource.username=postgres
+      - spring.datasource.password=Welcome
     depends_on:
       speaker-service-db:
         condition: service_started

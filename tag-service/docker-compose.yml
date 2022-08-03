@@ -10,9 +10,9 @@ services:
     ports:
       - 9002:9002
     environment:
-      - DATA_SOURCE_URL=jdbc:postgresql://tag-service-db:5432/TAG_SERVICE_DB
-      - DATA_SOURCE_USERNAME=postgres
-      - DATA_SOURCE_PASSWORD=Welcome
+      - spring.datasource.url=jdbc:postgresql://tag-service-db:5432/TAG_SERVICE_DB
+      - spring.datasource.username=postgres
+      - spring.datasource.password=Welcome
     depends_on:
       tag-service-db:
         condition: service_started
