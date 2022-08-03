@@ -1,10 +1,7 @@
 package com.conference.sessionservice.controller;
 
 import com.conference.sessionservice.dto.*;
-import com.conference.sessionservice.entity.Schedule;
 import com.conference.sessionservice.entity.Session;
-import com.conference.sessionservice.entity.Speaker;
-import com.conference.sessionservice.entity.Tag;
 import com.conference.sessionservice.service.SessionService;
 import com.conference.sessionservice.validator.InBetween;
 import com.conference.sessionservice.validator.IsUUID;
@@ -18,7 +15,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -30,117 +26,84 @@ public class SessionController {
     private SessionService service;
 
     @GetMapping
-    public ResponseDTO getAllSessions(@RequestParam(name = "page", required = false, defaultValue = "1") @Min(value = 1, message = "Query param page must >= 1") int page,
-                                      @RequestParam(name = "size", required = false, defaultValue = "20") @Min(value = 1, message = "Query param size must >= 1") int size,
-                                      @RequestParam(name = "sort", required = false, defaultValue = "sessionId") String sort,
-                                      @RequestParam(name = "order", required = false, defaultValue = "asc") @InBetween(in = {"asc", "desc"}, message = "Query param order must be in between {in}") String order) {
+    public SuccessResponse<?> getAllSessions(@RequestParam(name = "page", required = false, defaultValue = "1") @Min(value = 1, message = "Query param page must >= 1") int page,
+                                              @RequestParam(name = "size", required = false, defaultValue = "20") @Min(value = 1, message = "Query param size must >= 1") int size,
+                                              @RequestParam(name = "sort", required = false, defaultValue = "sessionId") String sort,
+                                              @RequestParam(name = "order", required = false, defaultValue = "asc") @InBetween(in = {"asc", "desc"}, message = "Query param order must be in between {in}") String order) {
         Page<Session> sessions = service.getAllSessions(page, size, sort, order);
-        return new SuccessResponse<>(OK, sessions.map(this::sessionEntityToSumDTO));
+        return new SuccessResponse<>(OK, sessions.map(this::entityToSumVO));
     }
 
     @GetMapping("{id}")
-    public ResponseDTO getSession(@PathVariable long id) {
+    public SuccessResponse<?> getSession(@PathVariable long id) {
         Session session = service.getSession(id);
-        return new SuccessResponse<>(OK, sessionEntityToDtlDTO(session));
+        return new SuccessResponse<>(OK, entityToDtlVO(session));
     }
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public ResponseDTO createSession(@RequestHeader("Idempotency-Key") @IsUUID(message = "idempotencyKey is not an valid UUID") String idempotencyKey,
-                                     @RequestBody @Valid SessionDtlDTO sessionDtlDTO) {
+    public SuccessResponse<?> createSession(@RequestHeader("Idempotency-Key") @IsUUID(message = "idempotencyKey is not an valid UUID") String idempotencyKey,
+                                     @RequestBody @Valid SessionDTO sessionDTO) {
         UUID idempotencyKeyUUID = UUID.fromString(idempotencyKey);
 
-        Session session = sessionDtlDTOToEntity(sessionDtlDTO);
+        Session session = dtoTOEntity(sessionDTO);
 
         session = service.createSession(session, idempotencyKeyUUID);
 
-        return new SuccessResponse<>(CREATED, sessionEntityToDtlDTO(session));
+        return new SuccessResponse<>(CREATED, entityToDtlVO(session));
     }
 
     @PutMapping("{id}")
-    public ResponseDTO updateSession(@PathVariable Long id, @Valid @RequestBody SessionDtlDTO sessionDtlDTO) {
-        Session session = service.updateSession(id, sessionDtlDTOToEntity(sessionDtlDTO));
-        return new SuccessResponse<>(OK, sessionEntityToDtlDTO(session));
+    public SuccessResponse<?> updateSession(@PathVariable Long id, @Valid @RequestBody SessionDTO sessionDTO) {
+        Session session = service.updateSession(id, dtoTOEntity(sessionDTO));
+        return new SuccessResponse<>(OK, entityToDtlVO(session));
     }
 
     @DeleteMapping("{id}")
     @ResponseStatus(NO_CONTENT)
-    public ResponseDTO deleteSession(@PathVariable Long id) {
+    public SuccessResponse<?> deleteSession(@PathVariable Long id) {
         service.deleteSession(id);
         return new SuccessResponse<>(NO_CONTENT,"");
     }
 
-//    @PutMapping("{id}/speakers")
-//    public ResponseDTO updateSessionSpeakers(@PathVariable Long id, @RequestBody List<Long> speakerIDs) {
-//        return new SuccessResponse<>(OK, service.updateSessionSpeakers(id, speakerIDs));
-//    }
-//
-//    @PutMapping("{id}/tags")
-//    public ResponseDTO updateSessionTags(@PathVariable Long id, @RequestBody List<Long> tags) {
-//        return new SuccessResponse<>(OK, service.updateSessionTags(id, tags));
-//    }
-//
-//    @PutMapping("{id}/schedule")
-//    public ResponseDTO updateSessionSchedule(@PathVariable("id") Long id, @Valid @RequestBody List<SessionSchedule> sessionSchedules) {
-//        return new SuccessResponse<>(OK, service.updateSessionSchedule(id, sessionSchedules));
-//    }
-
-    private SessionSumDTO sessionEntityToSumDTO(Session session) {
-        SessionSumDTO sessionSumDTO = new SessionSumDTO();
-        BeanUtils.copyProperties(session, sessionSumDTO);
-        return sessionSumDTO;
+    @PatchMapping("{id}/speakers")
+    public SuccessResponse<?> updateSessionSpeakers(@PathVariable Long id, @RequestBody Set<Long> speakerIDs) {
+        Session session = service.updateSessionSpeakers(id, speakerIDs);
+        return new SuccessResponse<>(OK, entityToDtlVO(session));
     }
 
-    private SessionDtlDTO sessionEntityToDtlDTO(Session session) {
-        SessionDtlDTO sessionDtlDTO = new SessionDtlDTO();
-        BeanUtils.copyProperties(session, sessionDtlDTO);
-
-        sessionDtlDTO.setSpeakerIds(session.getSpeakers().stream().map(Speaker::getSpeakerId).collect(Collectors.toSet()));
-        sessionDtlDTO.setTagIds(session.getTags().stream().map(Tag::getTagId).collect(Collectors.toSet()));
-        sessionDtlDTO.setSchedules(session.getSchedules().stream().map(this::scheduleEntityToDTO).collect(Collectors.toSet()));
-
-        return sessionDtlDTO;
+    @PatchMapping("{id}/tags")
+    public SuccessResponse<?> updateSessionTags(@PathVariable Long id, @RequestBody Set<Long> tagIDs) {
+        Session session = service.updateSessionTags(id, tagIDs);
+        return new SuccessResponse<>(OK, entityToDtlVO(session));
     }
 
-    private Session sessionDtlDTOToEntity(SessionDtlDTO sessionDtlDTO) {
+    @PatchMapping("{id}/schedules")
+    public SuccessResponse<?> updateSessionSchedules(@PathVariable("id") Long id, @Valid @RequestBody Set<ScheduleDTO> scheduleDTOs) {
+        Session session = service.updateSessionSchedules(id, scheduleDTOs);
+        return new SuccessResponse<>(OK, entityToDtlVO(session));
+    }
+
+    private Session dtoTOEntity(SessionDTO sessionDTO) {
         Session session = new Session();
-        session.setSessionId(sessionDtlDTO.getSessionId());
-        session.setSessionDescription(sessionDtlDTO.getSessionDescription());
-        session.setSessionLength(sessionDtlDTO.getSessionLength());
-        session.setSessionName(sessionDtlDTO.getSessionName());
-
-        Set<Speaker> speakers = sessionDtlDTO.getSpeakerIds().stream().map(speakerId -> {
-                                                                                Speaker speaker = new Speaker();
-                                                                                speaker.setSpeakerId(speakerId);
-                                                                                session.addSpeaker(speaker);
-                                                                                return speaker;
-                                                                            }).collect(Collectors.toSet());
-        session.setSpeakers(speakers);
-
-        Set<Tag> tags = sessionDtlDTO.getTagIds().stream().map(tagId -> {
-                                                                    Tag tag = new Tag();
-                                                                    tag.setTagId(tagId);
-                                                                    session.addTag(tag);
-                                                                    return tag;
-                                                                }).collect(Collectors.toSet());
-        session.setTags(tags);
-
-        Set<Schedule> schedules = sessionDtlDTO.getSchedules().stream().map(
-                                                                            scheduleDTO -> {
-                                                                                Schedule schedule = new Schedule();
-                                                                                schedule.setTimeSlotId(scheduleDTO.getTimeSlotId());
-                                                                                schedule.setRoom(scheduleDTO.getRoom());
-                                                                                session.addSchedule(schedule);
-                                                                                return schedule;
-                                                                            }).collect(Collectors.toSet());
-        session.setSchedules(schedules);
+        BeanUtils.copyProperties(sessionDTO, session);
         return session;
     }
 
-    private ScheduleDTO scheduleEntityToDTO(Schedule schedule) {
-        ScheduleDTO scheduleDTO = new ScheduleDTO();
-        scheduleDTO.setTimeSlotId(schedule.getTimeSlotId());
-        scheduleDTO.setRoom(schedule.getRoom());
-        return scheduleDTO;
+    private SessionSumVO entityToSumVO(Session session) {
+        SessionSumVO sessionSumVO = new SessionSumVO();
+        BeanUtils.copyProperties(session, sessionSumVO);
+        return sessionSumVO;
+    }
+
+    private SessionDtlVO entityToDtlVO(Session session) {
+        SessionDtlVO sessionDtlVO = new SessionDtlVO();
+        BeanUtils.copyProperties(session, sessionDtlVO);
+
+        sessionDtlVO.setSpeakers(service.retrieveSpeakerDetailFromService(session.getSpeakers()));
+        sessionDtlVO.setTags(service.retrieveTagDetailFromService(session.getTags()));
+        sessionDtlVO.setSchedules(service.retrieveScheduleDetailFromService(session.getSchedules()));
+
+        return sessionDtlVO;
     }
 }

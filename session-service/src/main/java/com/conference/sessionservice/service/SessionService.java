@@ -1,12 +1,14 @@
 package com.conference.sessionservice.service;
 
+import com.conference.sessionservice.dto.*;
+import com.conference.sessionservice.entity.Schedule;
 import com.conference.sessionservice.entity.Session;
+import com.conference.sessionservice.entity.Speaker;
+import com.conference.sessionservice.entity.Tag;
 import com.conference.sessionservice.exception.ResourceNotFoundException;
-import com.conference.sessionservice.repository.ScheduleRepository;
 import com.conference.sessionservice.repository.SessionRepository;
-import com.conference.sessionservice.repository.SpeakerRepository;
-import com.conference.sessionservice.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -14,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -23,13 +27,7 @@ public class SessionService {
     private SessionRepository repository;
 
     @Autowired
-    private SpeakerRepository speakerRepository;
-
-    @Autowired
-    private TagRepository tagRepository;
-
-    @Autowired
-    private ScheduleRepository scheduleRepository;
+    private RestService restService;
 
     @Transactional(readOnly = true)
     public Page<Session> getAllSessions(int page, int size, String sort, String order) {
@@ -77,34 +75,117 @@ public class SessionService {
         return repository.save(existingSession);
     }
 
-//    public Session updateSessionSpeakers(Long id, List<Long> speakerIDs) {
-//        Session existingSession = getSession(id);
-//
-//        Set<Speaker> newSpeakers = speakerIDs.stream().map(speakerService::getSpeaker).collect(Collectors.toSet());     // validation on every speakers
-//        existingSession.setSpeakers(newSpeakers);
-//
-//        return repository.save(existingSession);
-//    }
-//
-//    public Session updateSessionTags(Long id, List<Long> tagIDs) {
-//        Session existingSession = getSession(id);
-//        // validation on every tags, return 404 if tag is not found
-//        Set<Tag> newTags = tagIDs.stream().map(tagService::getTag).collect(Collectors.toSet());
-//
-//        existingSession.setTags(newTags);
-//        return repository.save(existingSession);
-//    }
-//
-//    public Session updateSessionSchedule(Long id, List<SessionSchedule> sessionSchedules) {
-//        Session existingSession = getSession(id);
-//
-//        Set<SessionSchedule> newSessionSchedules = sessionSchedules.stream().peek(sessionSchedule -> {
-//            sessionSchedule.setSession(existingSession);
-//            sessionSchedule.setTimeslot(timeslotsService.getTimeSlot(sessionSchedule.getTimeslot().getTimeSlotId()));
-//        }).collect(Collectors.toSet());
-//
-//        existingSession.getSchedules().clear();
-//        existingSession.getSchedules().addAll(newSessionSchedules);
-//        return repository.save(existingSession);
-//    }
+    public Session updateSessionSpeakers(Long id, Set<Long> speakerIDs) {
+        Session existingSession = getSession(id);
+
+        Set<Speaker> existingSessionSpeakers = existingSession.getSpeakers();
+
+        Set<Speaker> expectedSessionSpeakers = speakerIDs.stream()
+                                                            .peek(this::retrieveSpeakerDetailFromService)               // validate if is real speaker
+                                                            .map(speakerID -> {
+                                                                    Speaker speaker = new Speaker();
+                                                                    speaker.setSpeakerId(speakerID);
+                                                                    speaker.setSession(existingSession);
+                                                                    return speaker;
+                                                            })
+                                                            .collect(Collectors.toSet());
+
+        existingSessionSpeakers.removeIf(speaker -> !expectedSessionSpeakers.contains(speaker));                        // delete unexpected, but existed speakers
+        existingSessionSpeakers.addAll(expectedSessionSpeakers);                                                        // add expected, but non-existed speakers
+
+        existingSession.setSpeakers(existingSessionSpeakers);
+        return repository.save(existingSession);
+    }
+
+    public Session updateSessionTags(Long id, Set<Long> tagIDs) {
+        Session existingSession = getSession(id);
+
+        Set<Tag> existingSessionTags = existingSession.getTags();
+
+        Set<Tag> expectedSessionTags = tagIDs.stream()
+                                                .peek(this::retrieveTagDetailFromService)                               // validate if is real tag
+                                                .map(tagID -> {
+                                                        Tag tag = new Tag();
+                                                        tag.setTagId(tagID);
+                                                        tag.setSession(existingSession);
+                                                        return tag;
+                                                })
+                                                .collect(Collectors.toSet());
+
+        existingSessionTags.removeIf(tag -> !expectedSessionTags.contains(tag));                                        // delete unexpected, but existed tags
+        existingSessionTags.addAll(expectedSessionTags);                                                                // add expected, but non-existed tags
+
+        existingSession.setTags(existingSessionTags);
+        return repository.save(existingSession);
+    }
+
+    public Session updateSessionSchedules(Long id, Set<ScheduleDTO> scheduleDTOs) {
+        Session existingSession = getSession(id);
+
+        Set<Schedule> existingSessionSchedules = existingSession.getSchedules();
+
+        scheduleDTOs.stream().map(ScheduleDTO::getTimeSlotId).forEach(this::retrieveScheduleDetailFromService);         // validate if is real timeSlot
+
+        Set<Schedule> expectedSessionSchedules = scheduleDTOs.stream()
+                                                                .map(scheduleDTO -> {
+                                                                    Schedule schedule = new Schedule();
+                                                                    schedule.setRoom(scheduleDTO.getRoom());
+                                                                    schedule.setTimeSlotId(scheduleDTO.getTimeSlotId());
+                                                                    schedule.setSession(existingSession);
+                                                                    return schedule;
+                                                                })
+                                                                .collect(Collectors.toSet());
+
+        existingSessionSchedules.removeIf(tag -> !expectedSessionSchedules.contains(tag));                              // delete unexpected, but existed tags
+        existingSessionSchedules.addAll(expectedSessionSchedules);                                                      // add expected, but non-existed tags
+
+        existingSession.setSchedules(existingSessionSchedules);
+        return repository.save(existingSession);
+    }
+
+    public SpeakerVO retrieveSpeakerDetailFromService(Long speakerId) {
+        return restService.getForObject("http://SPEAKER-SERVICE/speakers/{1}",
+                                                new ParameterizedTypeReference<SuccessResponse<SpeakerVO>>() {},
+                                                speakerId
+                                        ).getData();
+    }
+
+    public TagVO retrieveTagDetailFromService(Long tagId) {
+        return restService.getForObject("http://TAG-SERVICE/tags/{1}",
+                                                new ParameterizedTypeReference<SuccessResponse<TagVO>>() {},
+                                                tagId
+                                        ).getData();
+    }
+
+    public ScheduleDtlVO retrieveScheduleDetailFromService(Long timeSlotId) {
+        return restService.getForObject("http://TIMESLOT-SERVICE/timeslots/{1}",
+                                                new ParameterizedTypeReference<SuccessResponse<ScheduleDtlVO>>() {},
+                                                timeSlotId
+                                        ).getData();
+    }
+
+    public Set<SpeakerVO> retrieveSpeakerDetailFromService(Set<Speaker> speakers) {
+        return speakers.stream()
+                        .map(Speaker::getSpeakerId)
+                        .map(this::retrieveSpeakerDetailFromService)
+                        .collect(Collectors.toSet());
+    }
+
+    public Set<TagVO> retrieveTagDetailFromService(Set<Tag> tags) {
+        return tags.stream()
+                    .map(Tag::getTagId)
+                    .map(this::retrieveTagDetailFromService)
+                    .collect(Collectors.toSet());
+    }
+
+    public Set<ScheduleDtlVO> retrieveScheduleDetailFromService(Set<Schedule> schedules) {
+        return schedules.stream()
+                        .map(schedule -> {
+                            Long timeSlotId = schedule.getTimeSlotId();
+                            ScheduleDtlVO scheduleDtlVO = retrieveScheduleDetailFromService(timeSlotId);
+                            scheduleDtlVO.setRoom(schedule.getRoom());
+                            return scheduleDtlVO;
+                        })
+                        .collect(Collectors.toSet());
+    }
 }
