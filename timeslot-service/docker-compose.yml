@@ -10,9 +10,9 @@ services:
     ports:
       - 9001:9001
     environment:
-      - DATA_SOURCE_URL=jdbc:postgresql://timeslot-service-db:5432/TIMESLOT_SERVICE_DB
-      - DATA_SOURCE_USERNAME=postgres
-      - DATA_SOURCE_PASSWORD=Welcome
+      - spring.datasource.url=jdbc:postgresql://timeslot-service-db:5432/TIMESLOT_SERVICE_DB
+      - spring.datasource.username=postgres
+      - spring.datasource.password=Welcome
     depends_on:
       timeslot-service-db:
         condition: service_started
