@@ -6,12 +6,11 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.util.Set;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SessionDtlDTO {
+public class SessionSumVO {
     private Long sessionId;
 
     @NotNull(message = "sessionName is mandatory!")
@@ -22,10 +21,4 @@ public class SessionDtlDTO {
 
     @NotNull(message = "sessionLength is mandatory!") @Positive(message = "sessionLength should be greater than 0!")
     private Integer sessionLength;
-
-    private Set<Long> speakerIds;
-
-    private Set<Long> tagIds;
-
-    private Set<ScheduleDTO> schedules;
 }

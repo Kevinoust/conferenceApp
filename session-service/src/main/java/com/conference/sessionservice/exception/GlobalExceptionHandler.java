@@ -3,11 +3,16 @@ package com.conference.sessionservice.exception;
 import com.conference.sessionservice.dto.ErrorResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -37,5 +42,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     ErrorResponse resourceNotFoundHandler(Exception ex) {
         return new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ResponseBody
+    @ExceptionHandler({HttpClientErrorException.class, HttpServerErrorException.class})
+    @ResponseStatus()
+    ResponseEntity<String> restClientErrorHandler(HttpStatusCodeException ex) {
+        return ResponseEntity.status(ex.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(ex.getResponseBodyAsString());
     }
 }

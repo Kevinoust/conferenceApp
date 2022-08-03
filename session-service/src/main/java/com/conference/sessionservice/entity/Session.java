@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import static javax.persistence.CascadeType.*;
+import static javax.persistence.CascadeType.ALL;
 
 @Entity(name = "sessions")
 @Data
@@ -41,13 +41,13 @@ public class Session {
     @JsonIgnore
     private UUID sessionUUID;
 
-    @OneToMany(mappedBy = "session", cascade = {PERSIST, MERGE, REFRESH, REMOVE})
+    @OneToMany(mappedBy = "session", cascade = ALL, orphanRemoval = true)
     private Set<Speaker> speakers = new HashSet<>();
 
-    @OneToMany(mappedBy = "session", cascade = {PERSIST, MERGE, REFRESH, REMOVE})
+    @OneToMany(mappedBy = "session", cascade = ALL, orphanRemoval = true)
     private Set<Tag> tags = new HashSet<>();
 
-    @OneToMany(mappedBy = "session", cascade = {PERSIST, MERGE, REFRESH, REMOVE})
+    @OneToMany(mappedBy = "session", cascade = ALL, orphanRemoval = true)
     private Set<Schedule> schedules = new HashSet<>();
 
     public void addSpeaker(Speaker speaker) {
