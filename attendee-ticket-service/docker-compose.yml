@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  attendee-ticket-service:
+    build:
+      context: ./
+      dockerfile: ./docker/api/Dockerfile
+    container_name: 'attendee-ticket-service'
+    image: attendee-ticket-service:latest
+    ports:
+      - 9006:9006
+    environment:
+      - spring.datasource.session=jdbc:postgresql://attendee-ticket-service-db:5432/ATTENDEE_TICKET_SERVICE_DB
+      - spring.datasource.username=postgres
+      - spring.datasource.password=Welcome
+    depends_on:
+      attendee-ticket-service-db:
+        condition: service_started
+    networks:
+      - internal_network
+
+  attendee-ticket-service-db:
+    build:
+      context: ./
+      dockerfile: ./docker/db/Dockerfile
+    container_name: 'attendee-ticket-service-db'
+    image: attendee-ticket-service-db:latest
+    ports:
+      - 9106:5432
+    volumes:
+      - ./.data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ATTENDEE_TICKET_SERVICE_DB
+      - POSTGRES_PASSWORD=Welcome
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    driver: bridge
