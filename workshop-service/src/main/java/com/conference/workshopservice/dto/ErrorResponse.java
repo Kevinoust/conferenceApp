@@ -1,23 +1,17 @@
 package com.conference.workshopservice.dto;
 
-import org.springframework.http.HttpStatus;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
-import java.util.List;
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ErrorResponse extends ResponseDTO {
     private List<String> errorMessages;
 
     public ErrorResponse(HttpStatus errorStatusCode, String... errorMessages) {
         super(errorStatusCode);
         this.errorMessages = Arrays.asList(errorMessages);
-    }
-
-    public List<String> getErrorMessages() {
-        return errorMessages;
-    }
-
-    public void setErrorMessages(List<String> errorMessages) {
-        this.errorMessages = errorMessages;
     }
 }

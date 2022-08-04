@@ -10,12 +10,14 @@ CREATE TABLE workshops
 
 CREATE TABLE workshop_speakers
 (
-    workshop_id integer NOT NULL PRIMARY KEY REFERENCES workshops (workshop_id),
+    id          SERIAL  PRIMARY KEY,
+    workshop_id integer NOT NULL REFERENCES workshops (workshop_id),
     speaker_id  integer NOT NULL
 );
 
 CREATE TABLE workshop_registrations
 (
-    workshop_id        integer NOT NULL PRIMARY KEY REFERENCES workshops (workshop_id),
+    id                 SERIAL  PRIMARY KEY,
+    workshop_id        integer NOT NULL REFERENCES workshops (workshop_id),
     attendee_ticket_id integer NOT NULL
 );

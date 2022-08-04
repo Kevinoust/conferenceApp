@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -16,6 +16,6 @@ public class WorkshopDtlVO {
     private String requirements;
     private String room;
     private Integer capacity;
-    private List<SpeakerVO> speakers;
-    private List<RegistrationVO> registrations;
+    private Set<SpeakerVO> speakers;
+    private Set<RegistrationVO> registrations;
 }

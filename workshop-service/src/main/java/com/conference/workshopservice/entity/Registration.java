@@ -3,6 +3,7 @@ package com.conference.workshopservice.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -13,14 +14,16 @@ import java.util.Objects;
 @NoArgsConstructor
 public class Registration {
     @Id
-    @Column(name = "workshop_id")
-    private Long workshopId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
     @Column(name = "attendee_ticket_id")
     private Long attendeeTicketId;
 
     @ManyToOne
-    @JoinColumn(name = "workshop_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @JoinColumn(name = "workshop_id")
     private Workshop workshop;
 
     @Override
@@ -28,8 +31,8 @@ public class Registration {
         if (this == o) return true;
         if (!(o instanceof Registration)) return false;
         Registration that = (Registration) o;
-        return Objects.equals(getWorkshopId(), that.getWorkshopId()) &&
-                Objects.equals(getAttendeeTicketId(), that.getAttendeeTicketId());
+        return Objects.equals(getAttendeeTicketId(), that.getAttendeeTicketId()) &&
+                Objects.equals(getWorkshop(), that.getWorkshop());
     }
 
     @Override

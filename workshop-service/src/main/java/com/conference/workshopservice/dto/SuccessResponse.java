@@ -1,20 +1,13 @@
 package com.conference.workshopservice.dto;
 
-import org.springframework.http.HttpStatus;
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SuccessResponse<T> extends ResponseDTO {
     public T data;
 
     public SuccessResponse(HttpStatus statusCode, T data) {
         super(statusCode);
-        this.data = data;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
         this.data = data;
     }
 }
