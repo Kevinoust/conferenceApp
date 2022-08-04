@@ -1,8 +1,12 @@
 package com.conference.workshopservice.entity;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.OptimisticLockType;
+import org.hibernate.annotations.OptimisticLocking;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -17,9 +21,12 @@ import static javax.persistence.CascadeType.ALL;
         }
 )
 @Entity(name = "workshops")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@OptimisticLocking(type = OptimisticLockType.DIRTY)                                                                     // to enable OptimisticLocking
+@DynamicUpdate
 public class Workshop {
     public static final String ENTITYGRAPH_ALL = "workshop_all";
 
@@ -48,4 +55,14 @@ public class Workshop {
 
     @OneToMany(mappedBy = "workshop", cascade = ALL, orphanRemoval = true)
     private Set<Registration> registrations;
+
+    public void addSpeaker(Speaker speaker) {
+        speakers.add(speaker);
+        speaker.setWorkshop(this);
+    }
+
+    public void addRegistration(Registration registration) {
+        registrations.add(registration);
+        registration.setWorkshop(this);
+    }
 }

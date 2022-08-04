@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseBody
-    @ExceptionHandler(ResourceNotFoundException.class)
+    @ExceptionHandler({ResourceNotFoundException.class, WorkshopNoCapacityException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     ErrorResponse resourceNotFoundHandler(Exception ex) {
         return new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());

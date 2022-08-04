@@ -13,3 +13,5 @@ VALUES (1,'More Effective Agile Practices','','','Cedar',50),
        (12,'Building APIs in ASP.NET Core','','','Oak',30);
 
 select setval('workshops_workshop_id_seq',COALESCE((select max(workshop_id) + 1 from workshops), 1));
+select setval('workshop_speakers_id_seq',COALESCE((select max(id) + 1 from workshop_speakers), 1));
+select setval('workshop_registrations_id_seq',COALESCE((select max(id) + 1 from workshop_registrations), 1));

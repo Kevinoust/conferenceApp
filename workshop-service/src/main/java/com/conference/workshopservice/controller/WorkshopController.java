@@ -1,9 +1,8 @@
 package com.conference.workshopservice.controller;
 
-import com.conference.workshopservice.dto.SuccessResponse;
-import com.conference.workshopservice.dto.WorkshopDTO;
-import com.conference.workshopservice.dto.WorkshopDtlVO;
-import com.conference.workshopservice.dto.WorkshopSumVO;
+import com.conference.workshopservice.dto.*;
+import com.conference.workshopservice.entity.Registration;
+import com.conference.workshopservice.entity.Speaker;
 import com.conference.workshopservice.entity.Workshop;
 import com.conference.workshopservice.service.WorkshopService;
 import org.springframework.beans.BeanUtils;
@@ -61,10 +60,10 @@ public class WorkshopController {
         return new SuccessResponse<>(OK, entityToDtlVO(workshop));
     }
 
-//    @PostMapping("/registration")
-//    public SuccessResponse<?> registerWorkshop(@RequestBody AttendeeTicketClientDTO attendeeTicketClientDTO) {
-//        return new SuccessResponse<>(OK, service.register(attendeeTicketClientDTO));
-//    }
+    @PostMapping("{id}/registration")
+    public SuccessResponse<?> registerWorkshop(@PathVariable Long id, @RequestBody RegistrationDTO registrationDTO) {
+        return new SuccessResponse<>(OK, service.registerWorkshop(id, registrationDTO));
+    }
 
     private WorkshopSumVO entityToSumVO(Workshop workshop) {
         WorkshopSumVO workshopSumVO = new WorkshopSumVO();
@@ -74,6 +73,19 @@ public class WorkshopController {
 
     private WorkshopDtlVO entityToDtlVO(Workshop workshop) {
         WorkshopDtlVO workshopDtlVO = new WorkshopDtlVO();
+        BeanUtils.copyProperties(workshop, workshopDtlVO);
+
+        Set<SpeakerVO> speakerVOs = workshop.getSpeakers().stream()
+                                                            .map(Speaker::getSpeakerId)
+                                                            .map(service::retrieveSpeakerFromService)
+                                                            .collect(Collectors.toSet());
+        workshopDtlVO.setSpeakers(speakerVOs);
+
+        Set<RegistrationVO> registrationVOs = workshop.getRegistrations().stream()
+                                                                            .map(Registration::getAttendeeTicketId)
+                                                                            .map(service::retrieveAttendeeTicketFromService)
+                                                                            .collect(Collectors.toSet());
+        workshopDtlVO.setRegistrations(registrationVOs);
         return workshopDtlVO;
     }
 
