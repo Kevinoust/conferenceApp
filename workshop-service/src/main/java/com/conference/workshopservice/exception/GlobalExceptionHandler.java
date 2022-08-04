@@ -50,4 +50,11 @@ public class GlobalExceptionHandler {
     ResponseEntity<String> restClientErrorHandler(HttpStatusCodeException ex) {
         return ResponseEntity.status(ex.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(ex.getResponseBodyAsString());
     }
+
+    @ResponseBody
+    @ExceptionHandler(ServiceNotAvailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    ErrorResponse restClientErrorHandler(ServiceNotAvailableException ex) {
+        return new ErrorResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
 }

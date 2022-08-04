@@ -8,8 +8,10 @@ import com.conference.workshopservice.entity.Registration;
 import com.conference.workshopservice.entity.Speaker;
 import com.conference.workshopservice.entity.Workshop;
 import com.conference.workshopservice.exception.ResourceNotFoundException;
+import com.conference.workshopservice.exception.ServiceNotAvailableException;
 import com.conference.workshopservice.exception.WorkshopNoCapacityException;
 import com.conference.workshopservice.repository.WorkshopRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -119,6 +121,7 @@ public class WorkshopService {
         return createAttendeeTicketFromService(registrationDTO);
     }
 
+    @CircuitBreaker(name = "SERVICE-CIRCUIT-BREAKER", fallbackMethod = "retrieveSpeakerFromServiceFallBack")
     public SpeakerVO retrieveSpeakerFromService(Long speakerId) {
         return restService.getForObject("http://SPEAKER-SERVICE/speakers/{1}",
                 new ParameterizedTypeReference<SuccessResponse<SpeakerVO>>() {},
@@ -126,6 +129,7 @@ public class WorkshopService {
         ).getData();
     }
 
+    @CircuitBreaker(name = "SERVICE-CIRCUIT-BREAKER", fallbackMethod = "retrieveAttendeeTicketFromServiceFallBack")
     public RegistrationVO retrieveAttendeeTicketFromService(Long attendeeTicketId) {
         return restService.getForObject("http://ATTENDEE-TICKET-SERVICE/attendeeTickets/{1}",
                 new ParameterizedTypeReference<SuccessResponse<RegistrationVO>>() {},
@@ -133,10 +137,19 @@ public class WorkshopService {
         ).getData();
     }
 
+    @CircuitBreaker(name = "SERVICE-CIRCUIT-BREAKER", fallbackMethod = "retrieveAttendeeTicketFromServiceFallBack")
     public RegistrationVO createAttendeeTicketFromService(RegistrationDTO registrationDTO) {
         return restService.postForObject("http://ATTENDEE-TICKET-SERVICE/attendeeTickets",
                 new ParameterizedTypeReference<SuccessResponse<RegistrationVO>>() {},
                 registrationDTO
         ).getData();
+    }
+
+    private SpeakerVO retrieveSpeakerFromServiceFallBack(Exception ex) {
+        throw new ServiceNotAvailableException("Speaker");
+    }
+
+    private RegistrationVO retrieveAttendeeTicketFromServiceFallBack(Exception ex) {
+        throw new ServiceNotAvailableException("Registration");
     }
 }
