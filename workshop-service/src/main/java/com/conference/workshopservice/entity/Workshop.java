@@ -55,7 +55,7 @@ public class Workshop {
 
     @OneToMany(mappedBy = "workshop", cascade = ALL, orphanRemoval = true)
     private Set<Registration> registrations;
-
+    
     public void addSpeaker(Speaker speaker) {
         speakers.add(speaker);
         speaker.setWorkshop(this);
