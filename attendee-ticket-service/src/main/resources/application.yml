@@ -4,20 +4,11 @@ server:
 spring:
   application:
     name: ATTENDEE-TICKET-SERVICE
-  jpa:
-    show-sql: true
   datasource:
     platform: postgres
     url: jdbc:postgresql://localhost:9106/ATTENDEE_TICKET_SERVICE_DB
     username: postgres
     password: Welcome
     driverClassName: org.postgresql.Driver
-
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    hostname: localhost
+  config:
+    import: configserver:http://localhost:9296
