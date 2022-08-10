@@ -31,3 +31,8 @@ spring:
           uri: lb://ATTENDEE-TICKET-SERVICE
           predicates:
             - Path=/attendeeTickets/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${HOST_SERVICE_REGISTRY:localhost}:8761/eureka
