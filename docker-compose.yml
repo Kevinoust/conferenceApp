@@ -47,6 +47,170 @@ services:
     networks:
       - inside
 
+  timeslot:
+    build:
+      context: ./timeslot-service/
+      dockerfile: ./docker/api/Dockerfile
+    container_name: 'timeslot'
+    image: timeslot:prod
+    ports:
+      - 9001:9001
+    environment:
+      - HOST_SERVICE_REGISTRY=service-registry
+      - HOST_CONFIG_SERVER=config-server
+      - HOST_ZIPKIN=zipkin
+      - HOST_DB=timeslot-db
+      - DB_NAME=TIMESLOT_SERVICE_DB
+      - DB_USER=postgres
+      - DB_PASSWORD=Welcome
+    depends_on:
+      - service-registry
+      - config-server
+      - timeslot-db
+      - zipkin
+    networks:
+      - inside
+      - timeslot
+
+  timeslot-db:
+    build:
+      context: ./timeslot-service/
+      dockerfile: ./docker/db/Dockerfile
+    container_name: 'timeslot-db'
+    image: timeslot-db:prod
+    ports:
+      - 9101:5432
+    volumes:
+      - ./timeslot-service/.data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=TIMESLOT_SERVICE_DB
+      - POSTGRES_PASSWORD=Welcome
+    networks:
+      - timeslot
+      
+  tag:
+    build:
+      context: ./tag-service/
+      dockerfile: ./docker/api/Dockerfile
+    container_name: 'tag'
+    image: tag:prod
+    ports:
+      - 9002:9002
+    environment:
+      - HOST_SERVICE_REGISTRY=service-registry
+      - HOST_CONFIG_SERVER=config-server
+      - HOST_ZIPKIN=zipkin
+      - HOST_DB=tag-db
+      - DB_NAME=TAG_SERVICE_DB
+      - DB_USER=postgres
+      - DB_PASSWORD=Welcome
+    depends_on:
+      - service-registry
+      - config-server
+      - tag-db
+      - zipkin
+    networks:
+      - inside
+      - tag
+
+  tag-db:
+    build:
+      context: ./tag-service/
+      dockerfile: ./docker/db/Dockerfile
+    container_name: 'tag-db'
+    image: tag-db:prod
+    ports:
+      - 9102:5432
+    volumes:
+      - ./tag-service/.data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=TAG_SERVICE_DB
+      - POSTGRES_PASSWORD=Welcome
+    networks:
+      - tag  
+  
+  speaker:
+    build:
+      context: ./speaker-service/
+      dockerfile: ./docker/api/Dockerfile
+    container_name: 'speaker'
+    image: speaker:prod
+    ports:
+      - 9003:9003
+    environment:
+      - HOST_SERVICE_REGISTRY=service-registry
+      - HOST_CONFIG_SERVER=config-server
+      - HOST_ZIPKIN=zipkin
+      - HOST_DB=speaker-db
+      - DB_NAME=SPEAKER_SERVICE_DB
+      - DB_USER=postgres
+      - DB_PASSWORD=Welcome
+    depends_on:
+      - service-registry
+      - config-server
+      - speaker-db
+      - zipkin
+    networks:
+      - inside
+      - speaker
+
+  speaker-db:
+    build:
+      context: ./speaker-service/
+      dockerfile: ./docker/db/Dockerfile
+    container_name: 'speaker-db'
+    image: speaker-db:prod
+    ports:
+      - 9103:5432
+    volumes:
+      - ./speaker-service/.data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=SPEAKER_SERVICE_DB
+      - POSTGRES_PASSWORD=Welcome
+    networks:
+      - speaker  
+  
+  session:
+    build:
+      context: ./session-service/
+      dockerfile: ./docker/api/Dockerfile
+    container_name: 'session'
+    image: session:prod
+    ports:
+      - 9004:9004
+    environment:
+      - HOST_SERVICE_REGISTRY=service-registry
+      - HOST_CONFIG_SERVER=config-server
+      - HOST_ZIPKIN=zipkin
+      - HOST_DB=session-db
+      - DB_NAME=SESSION_SERVICE_DB
+      - DB_USER=postgres
+      - DB_PASSWORD=Welcome
+    depends_on:
+      - service-registry
+      - config-server
+      - session-db
+      - zipkin
+    networks:
+      - inside
+      - session
+
+  session-db:
+    build:
+      context: ./session-service/
+      dockerfile: ./docker/db/Dockerfile
+    container_name: 'session-db'
+    image: session-db:prod
+    ports:
+      - 9104:5432
+    volumes:
+      - ./session-service/.data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=SESSION_SERVICE_DB
+      - POSTGRES_PASSWORD=Welcome
+    networks:
+      - session  
+  
   workshop:
     build:
       context: ./workshop-service/
@@ -129,169 +293,6 @@ services:
     networks:
       - attendee-ticket
 
-  speaker:
-    build:
-      context: ./speaker-service/
-      dockerfile: ./docker/api/Dockerfile
-    container_name: 'speaker'
-    image: speaker:prod
-    ports:
-      - 9003:9003
-    environment:
-      - HOST_SERVICE_REGISTRY=service-registry
-      - HOST_CONFIG_SERVER=config-server
-      - HOST_ZIPKIN=zipkin
-      - HOST_DB=speaker-db
-      - DB_NAME=SPEAKER_SERVICE_DB
-      - DB_USER=postgres
-      - DB_PASSWORD=Welcome
-    depends_on:
-      - service-registry
-      - config-server
-      - speaker-db
-      - zipkin
-    networks:
-      - inside
-      - speaker
-
-  speaker-db:
-    build:
-      context: ./speaker-service/
-      dockerfile: ./docker/db/Dockerfile
-    container_name: 'speaker-db'
-    image: speaker-db:prod
-    ports:
-      - 9103:5432
-    volumes:
-      - ./speaker-service/.data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=SPEAKER_SERVICE_DB
-      - POSTGRES_PASSWORD=Welcome
-    networks:
-      - speaker
-
-  session:
-    build:
-      context: ./session-service/
-      dockerfile: ./docker/api/Dockerfile
-    container_name: 'session'
-    image: session:prod
-    ports:
-      - 9004:9004
-    environment:
-      - HOST_SERVICE_REGISTRY=service-registry
-      - HOST_CONFIG_SERVER=config-server
-      - HOST_ZIPKIN=zipkin
-      - HOST_DB=session-db
-      - DB_NAME=SESSION_SERVICE_DB
-      - DB_USER=postgres
-      - DB_PASSWORD=Welcome
-    depends_on:
-      - service-registry
-      - config-server
-      - session-db
-      - zipkin
-    networks:
-      - inside
-      - session
-
-  session-db:
-    build:
-      context: ./session-service/
-      dockerfile: ./docker/db/Dockerfile
-    container_name: 'session-db'
-    image: session-db:prod
-    ports:
-      - 9104:5432
-    volumes:
-      - ./session-service/.data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=SESSION_SERVICE_DB
-      - POSTGRES_PASSWORD=Welcome
-    networks:
-      - session
-
-  tag:
-    build:
-      context: ./tag-service/
-      dockerfile: ./docker/api/Dockerfile
-    container_name: 'tag'
-    image: tag:prod
-    ports:
-      - 9002:9002
-    environment:
-      - HOST_SERVICE_REGISTRY=service-registry
-      - HOST_CONFIG_SERVER=config-server
-      - HOST_ZIPKIN=zipkin
-      - HOST_DB=tag-db
-      - DB_NAME=TAG_SERVICE_DB
-      - DB_USER=postgres
-      - DB_PASSWORD=Welcome
-    depends_on:
-      - service-registry
-      - config-server
-      - tag-db
-      - zipkin
-    networks:
-      - inside
-      - tag
-
-  tag-db:
-    build:
-      context: ./tag-service/
-      dockerfile: ./docker/db/Dockerfile
-    container_name: 'tag-db'
-    image: tag-db:prod
-    ports:
-      - 9102:5432
-    volumes:
-      - ./tag-service/.data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=TAG_SERVICE_DB
-      - POSTGRES_PASSWORD=Welcome
-    networks:
-      - tag
-
-  timeslot:
-    build:
-      context: ./timeslot-service/
-      dockerfile: ./docker/api/Dockerfile
-    container_name: 'timeslot'
-    image: timeslot:prod
-    ports:
-      - 9001:9001
-    environment:
-      - HOST_SERVICE_REGISTRY=service-registry
-      - HOST_CONFIG_SERVER=config-server
-      - HOST_ZIPKIN=zipkin
-      - HOST_DB=timeslot-db
-      - DB_NAME=TIMESLOT_SERVICE_DB
-      - DB_USER=postgres
-      - DB_PASSWORD=Welcome
-    depends_on:
-      - service-registry
-      - config-server
-      - timeslot-db
-      - zipkin
-    networks:
-      - inside
-      - timeslot
-
-  timeslot-db:
-    build:
-      context: ./timeslot-service/
-      dockerfile: ./docker/db/Dockerfile
-    container_name: 'timeslot-db'
-    image: timeslot-db:prod
-    ports:
-      - 9101:5432
-    volumes:
-      - ./timeslot-service/.data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=TIMESLOT_SERVICE_DB
-      - POSTGRES_PASSWORD=Welcome
-    networks:
-      - timeslot
 
 networks:
   inside:
