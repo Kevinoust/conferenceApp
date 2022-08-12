@@ -1,5 +1,17 @@
-# conferenceApp
+# Conference App
 
-Conference App in microservices architecture, for learning purpose
-1. conference creation
-2. workshop ticketing
+services for session creation, workshop registration and ticketing
+
+/sessions
+
+/speakers
+
+/tags
+
+/timeslots
+
+/workshops
+
+/attendeeTickets
+
+continue...
